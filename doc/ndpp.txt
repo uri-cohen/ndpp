@@ -1,0 +1,74 @@
+# Copyright 2016 Uri Cohen (uri.l.cohen@gmail.com)
+#
+#  This file is part of NDPP.
+#
+#  NDPP is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  NDPP is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with NDPP.  If not, see <http:#www.gnu.org/licenses/>.
+
+NDPP - Non Deterministic Pre Processor
+======================================
+
+Started as an boost::spirit exercise:-) :-(
+For sake of simplicity separate macro definitions from text (template) to pre-process.
+
+NNDP provides
+* Seed dependent macro expansion
+  ** Non deterministic "choice" based expansion
+  ** Random value generation
+* "Context" dependent macro definition where "context" is a set of (hierarchically
+  defined) variable settings
+  ** Scoped context control
+
+The general form of a macro call is
+    MacroName ['<' context-setting '>'] ['(' positional-args ')']
+Where context-setting is a comma separated list of !? key[=value] strings (default value is 1)
+and positional-args are comma separated list of strings.
+
+Text Processing:
+================
+
+One approach is:
+
+  1. Once a macro call pattern is detected then
+    If there is a context-setting clause
+    Then
+    * The clause string is extracted (to the matching '>' - skipping quoted text and nested calls).
+    * The clause string goes pre-processing (maybe repeatedly)
+    * The result is parsed as context-setting and a new context is made (still not active)
+  
+    Positional-args goes a similar process resulting with a string args list
+    The macro expansion recipe is called with the new context and the string args list.
+
+Another approach is:
+
+  2. Once a macro call pattern is detected then
+    Extract all positional-args separated by commas while handling quoted text and nested
+    structures (matching '('...')' chunks etc).  Then pre-process each of the positional-args
+    separately and apply the macro.
+    
+  3. A possible variation: pre-process the entire macro call after the positional args were
+    expanded.  This let packing several args in one and do "eval" like action.
+
+It seems the "simplest" and most useful approach is 2. 
+
+Def Processing:
+===============
+
+Within def file
+* all ndpp primitives starts with %
+* escape character for % is either \% or %%
+
+%uniform_int(a,b)
+%uniform(a,b)
+%choice(comma-separated-choice-list)
+
